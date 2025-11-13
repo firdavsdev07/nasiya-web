@@ -72,7 +72,13 @@ export function CashView() {
 
   const filteredCash = managerFullName
     ? payments.filter((payment: any) => {
-        // managerId obyekt bo'lsa (Payment format)
+        // Mijozga biriktirilgan menејerni tekshirish (asosiy)
+        if (payment.customerId && payment.customerId.manager && typeof payment.customerId.manager === "object") {
+          const customerManagerName =
+            `${payment.customerId.manager.firstName || ""} ${payment.customerId.manager.lastName || ""}`.trim();
+          return customerManagerName === managerFullName;
+        }
+        // Agar mijozda menejer bo'lmasa, to'lovni qabul qilgan menејerni tekshirish
         if (payment.managerId && typeof payment.managerId === "object") {
           const paymentManagerName =
             `${payment.managerId.firstName || ""} ${payment.managerId.lastName || ""}`.trim();

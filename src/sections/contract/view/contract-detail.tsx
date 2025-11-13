@@ -43,13 +43,20 @@ const ContractDetails = () => {
   // Debug: contract ma'lumotlarini ko'rish
   useEffect(() => {
     if (contract) {
-      console.log("Contract data:", {
+      console.log("📊 Contract data updated:", {
         id: contract._id,
         totalPaid: contract.totalPaid,
         initialPayment: contract.initialPayment,
         totalPrice: contract.totalPrice,
         remainingDebt: contract.remainingDebt,
         paymentsCount: contract.payments?.length,
+        payments: contract.payments?.map((p: any) => ({
+          amount: p.amount,
+          actualAmount: p.actualAmount,
+          isPaid: p.isPaid,
+          status: p.status,
+          remainingAmount: p.remainingAmount,
+        })),
       });
     }
   }, [contract]);
@@ -101,7 +108,12 @@ const ContractDetails = () => {
               totalPaid={contract.totalPaid}
               payments={contract.payments}
               onPaymentSuccess={() => {
+                console.log("🔄 Payment success - reloading contract data...");
                 dispatch(getContract(contract._id));
+                // Ma'lumotlar yangilanishi uchun biroz kutish
+                setTimeout(() => {
+                  console.log("✅ Contract data reload requested");
+                }, 100);
               }}
             />
           )}

@@ -31,7 +31,14 @@ export const columnsCash: Column[] = [
   {
     id: "amount",
     label: "Summa",
-    format: (value: number) => `${value?.toLocaleString() || 0} $`,
+    renderCell: (row) => {
+      // ✅ Haqiqatda to'langan summa (actualAmount)
+      const actual = row.actualAmount !== undefined && row.actualAmount !== null
+        ? row.actualAmount
+        : row.amount;
+
+      return `${actual?.toLocaleString() || 0} $`;
+    },
   },
   {
     id: "date",

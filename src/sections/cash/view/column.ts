@@ -17,6 +17,11 @@ export const columnsCash: Column[] = [
     label: "Menejer",
     sortable: true,
     renderCell: (row) => {
+      // Mijozga biriktirilgan menејerni ko'rsatish
+      if (row.customerId && row.customerId.manager) {
+        return `${row.customerId.manager.firstName || ""} ${row.customerId.manager.lastName || ""}`;
+      }
+      // Agar mijozda menejer bo'lmasa, to'lovni qabul qilgan menејerni ko'rsatish
       if (row.managerId) {
         return `${row.managerId.firstName || ""} ${row.managerId.lastName || ""}`;
       }
@@ -26,7 +31,14 @@ export const columnsCash: Column[] = [
   {
     id: "amount",
     label: "Summa",
-    format: (value: number) => `${value?.toLocaleString() || 0} $`,
+    renderCell: (row) => {
+      // ✅ Haqiqatda to'langan summa (actualAmount)
+      const actual = row.actualAmount !== undefined && row.actualAmount !== null
+        ? row.actualAmount
+        : row.amount;
+
+      return `${actual?.toLocaleString() || 0} $`;
+    },
   },
   {
     id: "date",

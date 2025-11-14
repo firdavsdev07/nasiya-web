@@ -23,6 +23,8 @@ interface PaymentModalProps {
   open: boolean;
   amount: number;
   contractId: string;
+  isPayAll?: boolean;
+  paymentId?: string; // ✅ Qolgan qarzni to'lash uchun
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -31,6 +33,8 @@ const PaymentModal: FC<PaymentModalProps> = ({
   open,
   amount,
   contractId,
+  isPayAll = false,
+  paymentId, // ✅ Qolgan qarzni to'lash uchun
   onClose,
   onSuccess,
 }) => {
@@ -48,21 +52,33 @@ const PaymentModal: FC<PaymentModalProps> = ({
       try {
         const res = await authApi.get("/dashboard/currency-course");
         if (res.data && res.data.course) {
-          setCurrencyCourse(res.data.course);
+          const course = res.data.course;
+          setCurrencyCourse(course);
+          setDollarAmount(amount);
+          setSumAmount(amount * course);
+          setDollarInput(amount.toString());
+          setSumInput((amount * course).toString());
         }
       } catch (error) {
         console.error("Error fetching currency course:", error);
+        // Agar xato bo'lsa, default qiymatdan foydalanish
+        setDollarAmount(amount);
+        setSumAmount(amount * 12500);
+        setDollarInput(amount.toString());
+        setSumInput((amount * 12500).toString());
       }
     };
 
     if (open) {
       fetchCurrencyCourse();
-      setDollarAmount(amount);
-      setSumAmount(amount * currencyCourse);
     }
-  }, [open, amount, currencyCourse]);
+  }, [open, amount]);
 
-  // Raqamni formatlash funksiyasi
+  // State'lar input qiymatlari uchun (string)
+  const [dollarInput, setDollarInput] = useState("");
+  const [sumInput, setSumInput] = useState("");
+
+  // Raqamni formatlash funksiyasi (faqat ko'rsatish uchun)
   const formatNumber = (num: number): string => {
     return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 0,
@@ -70,22 +86,33 @@ const PaymentModal: FC<PaymentModalProps> = ({
     }).format(num);
   };
 
-  // Formatni olib tashlash funksiyasi
-  const parseFormattedNumber = (str: string): number => {
-    const cleaned = str.replace(/,/g, "");
-    return parseFloat(cleaned) || 0;
+  // Input qiymatini parse qilish (nuqta va vergulni qo'llab-quvvatlaydi)
+  const parseInputNumber = (str: string): number => {
+    // Faqat raqamlar, nuqta va vergulni qoldirish
+    const cleaned = str.replace(/[^\d.,]/g, "");
+    // Vergulni nuqtaga almashtirish
+    const normalized = cleaned.replace(/,/g, "");
+    return parseFloat(normalized) || 0;
   };
 
   const handleDollarChange = (value: string) => {
-    const numValue = parseFormattedNumber(value);
-    setDollarAmount(numValue);
-    setSumAmount(numValue * currencyCourse);
+    // Faqat raqamlar va nuqtani qabul qilish
+    if (value === "" || /^[\d.]*$/.test(value)) {
+      setDollarInput(value);
+      const numValue = parseInputNumber(value);
+      setDollarAmount(numValue);
+      setSumAmount(numValue * currencyCourse);
+    }
   };
 
   const handleSumChange = (value: string) => {
-    const numValue = parseFormattedNumber(value);
-    setSumAmount(numValue);
-    setDollarAmount(numValue / currencyCourse);
+    // Faqat raqamlar va nuqtani qabul qilish
+    if (value === "" || /^[\d.]*$/.test(value)) {
+      setSumInput(value);
+      const numValue = parseInputNumber(value);
+      setSumAmount(numValue);
+      setDollarAmount(numValue / currencyCourse);
+    }
   };
 
   const handleSubmit = async () => {
@@ -93,11 +120,30 @@ const PaymentModal: FC<PaymentModalProps> = ({
     setError("");
 
     try {
+      // Validatsiya - barcha maydonlar to'ldirilganligini tekshirish
+      if (!contractId) {
+        setError("Contract ID topilmadi");
+        setLoading(false);
+        return;
+      }
+
+      if (!dollarAmount || dollarAmount <= 0) {
+        setError("To'lov summasi noto'g'ri");
+        setLoading(false);
+        return;
+      }
+
+      if (!currencyCourse || currencyCourse <= 0) {
+        setError("Valyuta kursi yuklanmadi. Iltimos, qayta urinib ko'ring.");
+        setLoading(false);
+        return;
+      }
+
       // Contract bo'yicha to'lov qilish
       const paymentData = {
         contractId,
         amount: dollarAmount,
-        notes: note,
+        notes: note || "",
         currencyDetails: {
           dollar: dollarAmount,
           sum: sumAmount,
@@ -105,22 +151,72 @@ const PaymentModal: FC<PaymentModalProps> = ({
         currencyCourse,
       };
 
-      console.log("Sending payment data:", paymentData);
+      console.log("✅ Sending payment data:", paymentData, "isPayAll:", isPayAll);
+      console.log("✅ Validation check:", {
+        hasContractId: !!paymentData.contractId,
+        hasAmount: !!paymentData.amount,
+        hasCurrencyDetails: !!paymentData.currencyDetails,
+        hasCurrencyCourse: !!paymentData.currencyCourse,
+        currencyCourseValue: paymentData.currencyCourse,
+        dollarAmount,
+        sumAmount,
+      });
 
-      const res = await authApi.post("/payment/contract", paymentData);
+      // ✅ Endpoint tanlash
+      let endpoint = "/payment/contract";
+      let requestData: any = paymentData;
+
+      if (isPayAll) {
+        endpoint = "/payment/pay-all-remaining";
+      } else if (paymentId) {
+        // ✅ TEMPORARY FIX: /payment/contract endpoint'dan foydalanish
+        // paymentId ni notes'ga qo'shamiz, backend'da tekshiramiz
+        endpoint = "/payment/contract";
+        requestData = {
+          ...paymentData,
+          notes: `[PAY_REMAINING:${paymentId}] ${note || ""}`,
+        };
+        console.log("💰 Paying remaining for payment (via /contract):", paymentId);
+        console.log("📝 Notes with PAY_REMAINING tag:", requestData.notes);
+      }
+
+      console.log("📡 Sending to endpoint:", endpoint);
+      console.log("📦 Request data:", requestData);
+      const res = await authApi.post(endpoint, requestData);
 
       // ✅ Backend'dan kelgan to'lov holati ma'lumotlarini ko'rsatish
-      const paymentDetails = res.data.paymentDetails;
       let notificationMessage = res.data.message || "To'lov muvaffaqiyatli amalga oshirildi";
       let notificationVariant: "success" | "warning" | "info" = "success";
 
-      if (paymentDetails) {
-        if (paymentDetails.status === "UNDERPAID") {
-          notificationVariant = "warning";
-          notificationMessage = `⚠️ ${notificationMessage}\nQolgan qarz: ${paymentDetails.remainingAmount.toFixed(2)} $`;
-        } else if (paymentDetails.status === "OVERPAID") {
-          notificationVariant = "info";
-          notificationMessage = `✅ ${notificationMessage}\nOrtiqcha summa: ${paymentDetails.excessAmount.toFixed(2)} $ (keyingi oyga o'tkazildi)`;
+      // Agar "Barchasini to'lash" bo'lsa
+      if (isPayAll) {
+        notificationMessage = res.data.message || `${res.data.paymentsCreated} oylik to'lovlar muvaffaqiyatli amalga oshirildi`;
+      } 
+      // Agar qolgan qarzni to'lash bo'lsa
+      else if (paymentId) {
+        // payRemaining response
+        const payment = res.data.payment;
+        if (payment) {
+          if (payment.status === "PAID" && payment.isPaid) {
+            notificationVariant = "success";
+            notificationMessage = "✅ Qolgan qarz to'liq to'landi!";
+          } else if (payment.remainingAmount > 0) {
+            notificationVariant = "warning";
+            notificationMessage = `⚠️ Qolgan qarz qisman to'landi.\nHali ${payment.remainingAmount.toFixed(2)} $ qoldi`;
+          }
+        }
+      }
+      // Oddiy to'lov uchun
+      else {
+        const paymentDetails = res.data.paymentDetails;
+        if (paymentDetails) {
+          if (paymentDetails.status === "UNDERPAID") {
+            notificationVariant = "warning";
+            notificationMessage = `⚠️ ${notificationMessage}\nQolgan qarz: ${paymentDetails.remainingAmount.toFixed(2)} $`;
+          } else if (paymentDetails.status === "OVERPAID") {
+            notificationVariant = "info";
+            notificationMessage = `✅ ${notificationMessage}\nOrtiqcha summa: ${paymentDetails.excessAmount.toFixed(2)} $ (keyingi oyga o'tkazildi)`;
+          }
         }
       }
 
@@ -134,6 +230,8 @@ const PaymentModal: FC<PaymentModalProps> = ({
       // Modal'ni yopish va ma'lumotlarni tozalash
       onClose();
       setNote("");
+      setDollarInput("");
+      setSumInput("");
 
       // Backend'da ma'lumotlar yangilanishi uchun biroz kutamiz
       setTimeout(() => {
@@ -141,8 +239,11 @@ const PaymentModal: FC<PaymentModalProps> = ({
       }, 1000);
     } catch (err: any) {
       console.error("Payment error:", err);
+      console.error("Error response:", err.response);
+      console.error("Error response data:", err.response?.data);
+      
       const errorMessage =
-        err.response?.data?.message || "To'lov amalga oshirilmadi";
+        err.response?.data?.message || err.message || "To'lov amalga oshirilmadi";
 
       setError(errorMessage);
 
@@ -165,7 +266,7 @@ const PaymentModal: FC<PaymentModalProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>To'lovni tasdiqlash</DialogTitle>
+      <DialogTitle>{isPayAll ? "Barcha oylarni to'lash" : "To'lovni tasdiqlash"}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
           {error && (
@@ -178,23 +279,29 @@ const PaymentModal: FC<PaymentModalProps> = ({
           <Box
             sx={{
               p: 2,
-              bgcolor: "grey.100",
+              bgcolor: isPayAll ? "success.lighter" : "grey.100",
               borderRadius: 1,
             }}
           >
             <Typography variant="caption" color="text.secondary">
-              Oylik to'lov:
+              {isPayAll ? "Qolgan qarz:" : "Oylik to'lov:"}
             </Typography>
             <Typography variant="h6" fontWeight="bold">
               {amount.toLocaleString()} $
             </Typography>
+            {isPayAll && (
+              <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+                Barcha to'lanmagan oylar uchun
+              </Typography>
+            )}
           </Box>
 
           <TextField
             fullWidth
             label="Dollar"
-            value={formatNumber(dollarAmount)}
+            value={dollarInput}
             onChange={(e) => handleDollarChange(e.target.value)}
+            placeholder="0.00"
             InputProps={{
               endAdornment: <InputAdornment position="end">$</InputAdornment>,
             }}
@@ -203,8 +310,9 @@ const PaymentModal: FC<PaymentModalProps> = ({
           <TextField
             fullWidth
             label="So'm"
-            value={formatNumber(sumAmount)}
+            value={sumInput}
             onChange={(e) => handleSumChange(e.target.value)}
+            placeholder="0"
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">so'm</InputAdornment>
@@ -224,8 +332,8 @@ const PaymentModal: FC<PaymentModalProps> = ({
             </Typography>
           </Box>
 
-          {/* Real-time hisoblash natijasi */}
-          {dollarAmount > 0 && (
+          {/* Real-time hisoblash natijasi - faqat oddiy to'lov uchun */}
+          {!isPayAll && dollarAmount > 0 && (
             <Box>
               {/* Kam to'langan */}
               {isUnderpaid && (

@@ -96,16 +96,18 @@ const CustomerContract: React.FC<IProps> = ({
                   bgcolor: "grey.50",
                   "&:hover": { bgcolor: "action.hover" },
                   py: 1,
+                  pl: 3.5
                 }}
               >
                 <Stack
                   direction="row"
-                  spacing={2}
+                  spacing={8} 
                   alignItems="center"
-                  width="100%"
+                  width="94%"
                   flexWrap="wrap"
+                  
                 >
-                  <Typography variant="subtitle1" fontWeight="600" sx={{ flex: 1 }}>
+                  <Typography variant="subtitle1" fontWeight="700" sx={{ flex: 1 }}>
                     {contract.productName}
                   </Typography>
 
@@ -113,9 +115,13 @@ const CustomerContract: React.FC<IProps> = ({
                     label={getStatusLabel(contract.status)}
                     color={getStatusColor(contract.status)}
                     size="small"
+                    sx={{
+                      width: 100,
+                      height: 30,
+                    }}
                   />
 
-                  <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                  <Box sx={{ display: "flex", gap: 8, flexWrap: "wrap" }}> 
                     <Box>
                       <Typography variant="caption" color="text.secondary">
                         Boshlangan

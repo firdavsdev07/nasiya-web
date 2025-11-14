@@ -39,8 +39,10 @@ interface PaymentScheduleProps {
   remainingDebt?: number;
   totalPaid?: number;
   payments?: Array<{
+    _id?: string; // ✅ Payment ID
     date: Date;
     amount: number;
+    actualAmount?: number; // ✅ Haqiqatda to'langan summa
     isPaid: boolean;
     paymentType?: string;
     status?: string;
@@ -66,10 +68,28 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
   const [paymentModal, setPaymentModal] = useState<{
     open: boolean;
     amount: number;
+    isPayAll?: boolean;
+    paymentId?: string; // ✅ Qolgan qarzni to'lash uchun
   }>({
     open: false,
     amount: 0,
+    isPayAll: false,
+    paymentId: undefined,
   });
+  // Debug: payments prop o'zgarganda log qilish
+  React.useEffect(() => {
+    console.log("📋 PaymentSchedule - payments prop updated:", {
+      paymentsCount: payments.length,
+      payments: payments.map(p => ({
+        amount: p.amount,
+        actualAmount: p.actualAmount,
+        isPaid: p.isPaid,
+        status: p.status,
+        remainingAmount: p.remainingAmount,
+      })),
+    });
+  }, [payments]);
+
   // To'lov jadvalini yaratish
   const generateSchedule = (): PaymentScheduleItem[] => {
     const schedule: PaymentScheduleItem[] = [];
@@ -96,21 +116,17 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
       });
     }
 
-    // Oylik to'lovlarni qo'shish
-    // To'langan oylarni hisoblash (totalPaid asosida)
-    let remainingPaid = totalPaid - (isInitialPaid ? initialPayment : 0);
+    // Oylik to'lovlarni sanasi bo'yicha tartiblash
+    const monthlyPayments = payments
+      .filter(p => p.paymentType !== 'initial' && p.isPaid)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    // Oylik to'lovlarni qo'shish
     for (let i = 1; i <= period; i++) {
       const paymentDate = addMonths(start, i);
-
-      // Agar qolgan to'langan summa oylik to'lovdan katta yoki teng bo'lsa, bu oy to'langan
-      // 0.01 qo'shamiz - kichik hisob-kitob xatoliklarini hisobga olish uchun
-      const isPaid = remainingPaid >= monthlyPayment - 0.01;
-
-      if (isPaid) {
-        // Har bir to'langan oydan oylik to'lovni ayiramiz
-        remainingPaid -= monthlyPayment;
-      }
+      
+      // Bu oy uchun to'lov mavjudmi tekshirish (index bo'yicha)
+      const isPaid = i <= monthlyPayments.length;
 
       schedule.push({
         month: i,
@@ -126,18 +142,23 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
   const schedule = generateSchedule();
   const today = new Date();
 
-  const handlePayment = (amount: number) => {
-    setPaymentModal({ open: true, amount });
+  const handlePayment = (amount: number, paymentId?: string) => {
+    console.log("💰 Opening payment modal:", { amount, paymentId });
+    setPaymentModal({ open: true, amount, paymentId });
   };
 
   const handlePayAll = () => {
-    setPaymentModal({ open: true, amount: remainingDebt });
+    setPaymentModal({ open: true, amount: remainingDebt, isPayAll: true });
   };
 
   const handlePaymentSuccess = () => {
-    setPaymentModal({ open: false, amount: 0 });
+    console.log("💰 Payment completed - closing modal and refreshing data");
+    setPaymentModal({ open: false, amount: 0, isPayAll: false, paymentId: undefined });
     if (onPaymentSuccess) {
+      console.log("🔄 Calling onPaymentSuccess callback");
       onPaymentSuccess();
+    } else {
+      console.warn("⚠️ onPaymentSuccess callback not provided");
     }
   };
 
@@ -192,6 +213,12 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                   Summa
                 </TableCell>
                 <TableCell
+                  align="right"
+                  sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}
+                >
+                  To&apos;langan
+                </TableCell>
+                <TableCell
                   align="center"
                   sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}
                 >
@@ -210,32 +237,128 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
             <TableBody>
               {(() => {
                 let previousExcess = 0; // Oldingi oydan kelgan ortiqcha summa
+                
+                // To'lovlarni sanasi bo'yicha tartiblash
+                const sortedPayments = [...payments].sort((a, b) => 
+                  new Date(a.date).getTime() - new Date(b.date).getTime()
+                );
+                
+                // Oylik to'lovlarni ajratish (initial to'lovni chiqarib tashlash)
+                const monthlyPayments = sortedPayments.filter(p => 
+                  p.paymentType !== 'initial' && p.isPaid
+                );
 
                 return schedule.map((item, index) => {
                   const isPast = new Date(item.date) < today;
 
                   // Haqiqiy to'lov ma'lumotlarini topish
-                  const actualPayment = payments.find((p) => {
-                    const paymentDate = new Date(p.date);
-                    const itemDate = new Date(item.date);
-                    return (
-                      paymentDate.getMonth() === itemDate.getMonth() &&
-                      paymentDate.getFullYear() === itemDate.getFullYear() &&
-                      p.isPaid
+                  let actualPayment;
+                  
+                  if (item.isInitial) {
+                    // Boshlang'ich to'lov uchun
+                    actualPayment = payments.find((p) => 
+                      p.paymentType === 'initial' && p.isPaid
                     );
-                  });
+                  } else {
+                    // Oylik to'lovlar uchun - index bo'yicha topish (0-indexed)
+                    // item.month 1 dan boshlanadi, shuning uchun -1 qilamiz
+                    actualPayment = monthlyPayments[item.month - 1];
+                  }
 
+                  // Ortiqcha va kam to'langan summalarni tekshirish
                   const hasExcess =
                     actualPayment?.excessAmount != null &&
                     actualPayment.excessAmount > 0.01;
-                  const hasShortage =
-                    actualPayment?.remainingAmount != null &&
-                    actualPayment.remainingAmount > 0.01;
+                  
+                  // ✅ KAM TO'LANGAN SUMMANI TEKSHIRISH (FIXED - ESKI TO'LOVLAR UCHUN HAM)
+                  let remainingAmountToShow = 0;
+                  let hasShortage = false;
+                  
+                  if (actualPayment && item.isPaid) {
+                    // PRIORITY 1: remainingAmount (backend'dan to'g'ridan-to'g'ri)
+                    if (actualPayment.remainingAmount != null && actualPayment.remainingAmount > 0.01) {
+                      remainingAmountToShow = actualPayment.remainingAmount;
+                      hasShortage = true;
+                    }
+                    // PRIORITY 2: actualAmount mavjud va expectedAmount'dan kam
+                    else if (actualPayment.actualAmount != null && actualPayment.actualAmount !== undefined) {
+                      const expected = actualPayment.expectedAmount || actualPayment.amount || item.amount;
+                      const actual = actualPayment.actualAmount;
+                      const diff = expected - actual;
+                      
+                      if (diff > 0.01) {
+                        remainingAmountToShow = diff;
+                        hasShortage = true;
+                      }
+                    }
+                    // PRIORITY 3: Status UNDERPAID
+                    else if (actualPayment.status === 'UNDERPAID') {
+                      const expected = actualPayment.expectedAmount || actualPayment.amount || item.amount;
+                      const actual = actualPayment.amount;
+                      const diff = expected - actual;
+                      
+                      if (diff > 0.01) {
+                        remainingAmountToShow = diff;
+                        hasShortage = true;
+                      }
+                    }
+                    // PRIORITY 4: ESKI TO'LOVLAR UCHUN - amount'ni tekshirish
+                    // Agar actualAmount undefined bo'lsa, bu eski to'lov
+                    // Eski to'lovlarda amount = actualAmount deb hisoblaymiz
+                    // Agar amount < item.amount bo'lsa, kam to'langan
+                    else if (actualPayment.actualAmount === undefined || actualPayment.actualAmount === null) {
+                      const expected = item.amount; // Oylik to'lov
+                      const actual = actualPayment.amount; // Haqiqatda to'langan (eski to'lovlarda)
+                      const diff = expected - actual;
+                      
+                      if (diff > 0.01) {
+                        remainingAmountToShow = diff;
+                        hasShortage = true;
+                        console.log(`⚠️ OLD PAYMENT - SHORTAGE DETECTED for month ${item.month}:`, {
+                          expected,
+                          actual,
+                          diff,
+                        });
+                      }
+                    }
+                    
+                    // DEBUG - Har bir to'lov uchun ma'lumotlarni ko'rsatish
+                    console.log(`🔍 Payment ${item.month} check:`, {
+                      isPaid: item.isPaid,
+                      hasActualPayment: !!actualPayment,
+                      remainingAmount: actualPayment?.remainingAmount,
+                      actualAmount: actualPayment?.actualAmount,
+                      expectedAmount: actualPayment?.expectedAmount,
+                      amount: actualPayment?.amount,
+                      status: actualPayment?.status,
+                      hasShortage,
+                      remainingAmountToShow,
+                    });
+                    
+                    if (hasShortage) {
+                      console.log(`⚠️ SHORTAGE DETECTED for month ${item.month}:`, {
+                        remainingAmountToShow,
+                        willShowButton: true,
+                      });
+                    }
+                  }
 
-                  // Haqiqiy to'langan summa
-                  const actualPaidAmount = actualPayment?.amount || 0;
-                  const expectedAmount =
-                    actualPayment?.expectedAmount || item.amount;
+                  // ✅ HAQIQIY TO'LANGAN SUMMA
+                  let actualPaidAmount = 0;
+                  if (item.isPaid && actualPayment) {
+                    // 1. actualAmount mavjud bo'lsa (yangi to'lovlar)
+                    if (actualPayment.actualAmount !== undefined && actualPayment.actualAmount !== null) {
+                      actualPaidAmount = actualPayment.actualAmount;
+                      console.log(`💰 Payment ${item.month} - Using actualAmount: ${actualPaidAmount}`);
+                    } 
+                    // 2. actualAmount yo'q bo'lsa, amount'dan foydalanamiz (eski to'lovlar)
+                    else {
+                      actualPaidAmount = actualPayment.amount;
+                      console.log(`💰 Payment ${item.month} - Using amount (old): ${actualPaidAmount}`);
+                    }
+                  }
+                  
+                  const expectedAmount = actualPayment?.expectedAmount || item.amount;
 
                   // Kechikish kunlarini hisoblash
                   let delayDays = 0;
@@ -347,15 +470,25 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                           )}
                         </TableCell>
 
-                        {/* Summa */}
+                        {/* Summa - Oylik to'lov (har doim bir xil) */}
                         <TableCell align="right">
-                          <Box>
-                            <Typography variant="body2" fontWeight="medium">
-                              {expectedAmount.toLocaleString()} $
-                            </Typography>
-                            {item.isPaid &&
-                              hasShortage &&
-                              actualPayment?.remainingAmount && (
+                          <Typography variant="body2" fontWeight="medium">
+                            {item.amount.toLocaleString()} $
+                          </Typography>
+                        </TableCell>
+
+                        {/* To'langan */}
+                        <TableCell align="right">
+                          {item.isPaid ? (
+                            <Box>
+                              <Typography 
+                                variant="body2" 
+                                fontWeight="medium"
+                                color="success.main"
+                              >
+                                {actualPaidAmount.toLocaleString()} $
+                              </Typography>
+                              {hasShortage && remainingAmountToShow > 0.01 && (
                                 <Box
                                   sx={{
                                     display: "inline-flex",
@@ -378,14 +511,12 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                                     fontWeight="bold"
                                     color="error.main"
                                   >
-                                    {actualPayment.remainingAmount.toLocaleString()}{" "}
+                                    {remainingAmountToShow.toLocaleString()}{" "}
                                     $ kam
                                   </Typography>
                                 </Box>
                               )}
-                            {item.isPaid &&
-                              hasExcess &&
-                              actualPayment?.excessAmount && (
+                              {hasExcess && actualPayment?.excessAmount && (
                                 <Box
                                   sx={{
                                     display: "inline-flex",
@@ -413,7 +544,12 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                                   </Typography>
                                 </Box>
                               )}
-                          </Box>
+                            </Box>
+                          ) : (
+                            <Typography variant="body2" color="text.disabled">
+                              —
+                            </Typography>
+                          )}
                         </TableCell>
 
                         {/* Holat */}
@@ -429,15 +565,40 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                         {/* Amal */}
                         {contractId && (
                           <TableCell align="center" sx={{ py: 1 }}>
-                            {!item.isPaid && (
+                            {!item.isPaid ? (
                               <Button
                                 size="small"
                                 variant="contained"
                                 color={isPast ? "error" : "primary"}
                                 onClick={() => handlePayment(item.amount)}
+                                startIcon={<Iconify icon="mdi:cash" />}
                               >
                                 To'lash
                               </Button>
+                            ) : hasShortage && remainingAmountToShow > 0.01 ? (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="error"
+                                onClick={() => handlePayment(remainingAmountToShow, actualPayment?._id)}
+                                startIcon={<Iconify icon="mdi:alert-circle" />}
+                                sx={{
+                                  animation: 'pulse 2s infinite',
+                                  '@keyframes pulse': {
+                                    '0%, 100%': { opacity: 1 },
+                                    '50%': { opacity: 0.7 },
+                                  },
+                                }}
+                              >
+                                Qolganini to&apos;lash ({remainingAmountToShow.toLocaleString()} $)
+                              </Button>
+                            ) : (
+                              <Chip
+                                label="To'langan"
+                                color="success"
+                                size="small"
+                                icon={<Iconify icon="mdi:check-circle" />}
+                              />
                             )}
                           </TableCell>
                         )}
@@ -501,7 +662,9 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
           open={paymentModal.open}
           amount={paymentModal.amount}
           contractId={contractId}
-          onClose={() => setPaymentModal({ open: false, amount: 0 })}
+          isPayAll={paymentModal.isPayAll}
+          paymentId={paymentModal.paymentId} // ✅ Qolgan qarzni to'lash uchun
+          onClose={() => setPaymentModal({ open: false, amount: 0, isPayAll: false, paymentId: undefined })}
           onSuccess={handlePaymentSuccess}
         />
       )}

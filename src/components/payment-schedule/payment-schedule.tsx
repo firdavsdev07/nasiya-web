@@ -164,7 +164,7 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
 
   return (
     <>
-      <Paper elevation={0} sx={{ p: 1.5, border: 1, borderColor: "divider" }}>
+      <Paper elevation={0} sx={{ p: { xs: 1, sm: 1.5 }, border: 1, borderColor: "divider" }}>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -193,41 +193,97 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
           )}
         </Box>
 
-        <TableContainer sx={{ maxHeight: 500, overflowX: "auto" }}>
-          <Table size="small" stickyHeader sx={{ minWidth: 650 }}>
+        <TableContainer sx={{ maxHeight: "60vh", overflowX: "auto" }}>
+          <Table size="small" stickyHeader sx={{ minWidth: "100%", width: "100%" }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}>
+                <TableCell sx={{ 
+                  fontWeight: 600, 
+                  bgcolor: "grey.50", 
+                  py: 1, 
+                  px: { xs: 0.5, sm: 1, md: 2 },
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                  whiteSpace: "nowrap"
+                }}>
                   #
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}>
+                <TableCell sx={{ 
+                  fontWeight: 600, 
+                  bgcolor: "grey.50", 
+                  py: 1, 
+                  px: { xs: 0.5, sm: 1, md: 2 },
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                  whiteSpace: "nowrap"
+                }}>
                   Belgilangan sana
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}>
+                <TableCell sx={{ 
+                  fontWeight: 600, 
+                  bgcolor: "grey.50", 
+                  py: 1, 
+                  px: { xs: 0.5, sm: 1, md: 2 },
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                  whiteSpace: "nowrap"
+                }}>
                   To'langan sana
                 </TableCell>
                 <TableCell
                   align="right"
-                  sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}
+                  sx={{ 
+                    fontWeight: 600, 
+                    bgcolor: "grey.50", 
+                    py: 1, 
+                    px: { xs: 0.5, sm: 1, md: 2 },
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                    whiteSpace: "nowrap"
+                  }}
                 >
                   Summa
                 </TableCell>
                 <TableCell
                   align="right"
-                  sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}
+                  sx={{ 
+                    fontWeight: 600, 
+                    bgcolor: "grey.50", 
+                    py: 1, 
+                    px: { xs: 0.5, sm: 1, md: 2 },
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                    whiteSpace: "nowrap"
+                  }}
                 >
                   To&apos;langan
                 </TableCell>
                 <TableCell
                   align="center"
-                  sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}
+                  sx={{ 
+                    fontWeight: 600, 
+                    bgcolor: "grey.50", 
+                    py: 1, 
+                    px: { xs: 0.5, sm: 1, md: 2 },
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                    whiteSpace: "nowrap"
+                  }}
                 >
                   Holat
                 </TableCell>
                 {contractId && (
                   <TableCell
                     align="center"
-                    sx={{ fontWeight: 600, bgcolor: "grey.50", py: 1 }}
+                    sx={{ 
+                      fontWeight: 600, 
+                      bgcolor: "grey.50", 
+                      py: 1, 
+                      px: { xs: 0.5, sm: 1, md: 2 },
+                      fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                      borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                      whiteSpace: "nowrap"
+                    }}
                   >
                     Amal
                   </TableCell>
@@ -425,6 +481,7 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                             : isPast && !item.isPaid
                               ? "error.lighter"
                               : "inherit",
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)",
                           "&:hover": {
                             bgcolor: item.isPaid
                               ? "success.light"
@@ -432,24 +489,50 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                                 ? "error.light"
                                 : "grey.100",
                           },
+                          "&:last-child": {
+                            borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                          },
                         }}
                       >
                         {/* # */}
-                        <TableCell sx={{ py: 1 }}>
-                          <Typography variant="body2" fontWeight="600">
-                            {item.isInitial ? "Boshlang'ich" : `${item.month}-oy`}
-                          </Typography>
+                        <TableCell sx={{ 
+                          py: 1, 
+                          px: { xs: 0.5, sm: 1, md: 2 },
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)" 
+                        }}>
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            {isPast && !item.isPaid && (
+                              <Iconify icon="mdi:alert-circle" width={16} sx={{ color: "error.main" }} />
+                            )}
+                            <Typography 
+                              variant="body2" 
+                              fontWeight="600" 
+                              fontSize={{ xs: "0.75rem", sm: "0.875rem" }}
+                              color={isPast && !item.isPaid ? "error.main" : "inherit"}
+                            >
+                              {item.isInitial ? "Boshlang'ich" : `${item.month}-oy`}
+                              {isPast && !item.isPaid && " (Kechikkan)"}
+                            </Typography>
+                          </Box>
                         </TableCell>
 
                         {/* Belgilangan sana */}
-                        <TableCell sx={{ py: 1 }}>
-                          <Typography variant="body2" fontSize="0.875rem">
+                        <TableCell sx={{ 
+                          py: 1, 
+                          px: { xs: 0.5, sm: 1, md: 2 },
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)" 
+                        }}>
+                          <Typography variant="body2" fontSize={{ xs: "0.75rem", sm: "0.875rem" }}>
                             {format(new Date(item.date), "dd.MM.yyyy")}
                           </Typography>
                         </TableCell>
 
                         {/* To'langan sana */}
-                        <TableCell sx={{ py: 1 }}>
+                        <TableCell sx={{ 
+                          py: 1, 
+                          px: { xs: 0.5, sm: 1, md: 2 },
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)" 
+                        }}>
                           {item.isPaid ? (
                             <Typography
                               variant="body2"
@@ -471,14 +554,22 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                         </TableCell>
 
                         {/* Summa - Oylik to'lov (har doim bir xil) */}
-                        <TableCell align="right">
-                          <Typography variant="body2" fontWeight="medium">
+                        <TableCell align="right" sx={{ 
+                          py: 1,
+                          px: { xs: 0.5, sm: 1, md: 2 },
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)" 
+                        }}>
+                          <Typography variant="body2" fontWeight="medium" fontSize={{ xs: "0.75rem", sm: "0.875rem" }}>
                             {item.amount.toLocaleString()} $
                           </Typography>
                         </TableCell>
 
                         {/* To'langan */}
-                        <TableCell align="right">
+                        <TableCell align="right" sx={{ 
+                          py: 1,
+                          px: { xs: 0.5, sm: 1, md: 2 },
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)" 
+                        }}>
                           {item.isPaid ? (
                             <Box>
                               <Typography 
@@ -553,25 +644,43 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                         </TableCell>
 
                         {/* Holat */}
-                        <TableCell align="center" sx={{ py: 1 }}>
+                        <TableCell align="center" sx={{ 
+                          py: 1, 
+                          px: { xs: 0.5, sm: 1, md: 2 },
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)" 
+                        }}>
                           <Chip
                             label={item.isPaid ? "Paid" : isPast ? "Kechikkan" : "Kutilmoqda"}
                             color={item.isPaid ? "success" : isPast ? "error" : "default"}
                             size="small"
-                            sx={{ minWidth: 90, fontSize: "0.75rem" }}
+                            sx={{ 
+                              minWidth: { xs: "auto", sm: 90 },
+                              fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                              height: { xs: 24, sm: 32 }
+                            }}
                           />
                         </TableCell>
 
                         {/* Amal */}
                         {contractId && (
-                          <TableCell align="center" sx={{ py: 1 }}>
+                          <TableCell align="center" sx={{ 
+                            py: 1, 
+                            px: { xs: 0.5, sm: 1, md: 2 },
+                            borderBottom: "1px solid rgba(224, 224, 224, 1)" 
+                          }}>
                             {!item.isPaid ? (
                               <Button
                                 size="small"
                                 variant="contained"
                                 color={isPast ? "error" : "primary"}
                                 onClick={() => handlePayment(item.amount)}
-                                startIcon={<Iconify icon="mdi:cash" />}
+                                startIcon={<Iconify icon="mdi:cash" width={16} />}
+                                sx={{
+                                  fontSize: { xs: "0.7rem", sm: "0.8125rem" },
+                                  px: { xs: 1, sm: 2 },
+                                  py: { xs: 0.5, sm: 0.75 },
+                                  whiteSpace: "nowrap"
+                                }}
                               >
                                 To'lash
                               </Button>
@@ -581,23 +690,31 @@ const PaymentSchedule: FC<PaymentScheduleProps> = ({
                                 variant="contained"
                                 color="error"
                                 onClick={() => handlePayment(remainingAmountToShow, actualPayment?._id)}
-                                startIcon={<Iconify icon="mdi:alert-circle" />}
+                                startIcon={<Iconify icon="mdi:alert-circle" width={16} />}
                                 sx={{
                                   animation: 'pulse 2s infinite',
                                   '@keyframes pulse': {
                                     '0%, 100%': { opacity: 1 },
                                     '50%': { opacity: 0.7 },
                                   },
+                                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                                  px: { xs: 0.75, sm: 1.5 },
+                                  py: { xs: 0.5, sm: 0.75 },
+                                  whiteSpace: "nowrap"
                                 }}
                               >
-                                Qolganini to&apos;lash ({remainingAmountToShow.toLocaleString()} $)
+                                Qarz ({remainingAmountToShow.toLocaleString()} $)
                               </Button>
                             ) : (
                               <Chip
                                 label="To'langan"
                                 color="success"
                                 size="small"
-                                icon={<Iconify icon="mdi:check-circle" />}
+                                icon={<Iconify icon="mdi:check-circle" width={16} />}
+                                sx={{
+                                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                                  height: { xs: 24, sm: 32 }
+                                }}
                               />
                             )}
                           </TableCell>

@@ -181,8 +181,12 @@ export function TableComponent<T extends Record<string, any>>({
   return (
     <>
       <Scrollbar>
-        <TableContainer sx={{ minWidth: 800, maxHeight: "calc(100vh - 280px)" }}>
-          <Table aria-label="sticky table" size="small" stickyHeader>
+        <TableContainer sx={{ 
+          minWidth: { xs: "100%", sm: 600, md: 800 }, 
+          maxHeight: { xs: "calc(100vh - 250px)", sm: "calc(100vh - 280px)" },
+          overflowX: "auto"
+        }}>
+          <Table aria-label="sticky table" size="small" stickyHeader sx={{ width: "100%" }}>
             <TableHead>
               <TableRow>
                 {selectable && (
@@ -195,6 +199,7 @@ export function TableComponent<T extends Record<string, any>>({
                       zIndex: 4,
                       backgroundColor: "background.paper",
                       boxShadow: "2px 0 5px -2px rgba(0,0,0,0.1)",
+                      borderBottom: "1px solid rgba(224, 224, 224, 1)",
                     }}
                   >
                     <Checkbox
@@ -217,11 +222,16 @@ export function TableComponent<T extends Record<string, any>>({
                       key={column.id}
                       align={column.align || "left"}
                       sx={{
-                        minWidth: column.minWidth || 100,
+                        minWidth: { xs: "auto", sm: column.minWidth || 100 },
+                        px: { xs: 0.5, sm: 1, md: 2 },
+                        py: { xs: 0.75, sm: 1 },
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
                         position: "sticky",
                         top: 0,
                         zIndex: 3,
                         backgroundColor: "background.paper",
+                        borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                        whiteSpace: "nowrap",
                         ...(column.sticky && {
                           [column.sticky]: column.stickyOffset || 0,
                           zIndex: 4,
@@ -242,6 +252,7 @@ export function TableComponent<T extends Record<string, any>>({
                       top: 0,
                       zIndex: 3,
                       backgroundColor: "background.paper",
+                      borderBottom: "1px solid rgba(224, 224, 224, 1)",
                     }}
                   />
                 )}
@@ -288,10 +299,13 @@ export function TableComponent<T extends Record<string, any>>({
                       // onClick={() => onRowClick?.(row)}
                       sx={{
                         cursor: onRowClick ? "pointer" : "default",
-                        borderBottom: "1px solid #e0e0e0",
+                        borderBottom: "1px solid rgba(224, 224, 224, 1)",
                         bgcolor: row.isDeleted
                           ? "rgba(255, 0, 0, 0.6)"
                           : "inherit",
+                        "&:last-child": {
+                          borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                        },
                       }}
                     >
                       {selectable && (
@@ -303,6 +317,7 @@ export function TableComponent<T extends Record<string, any>>({
                             zIndex: 1,
                             backgroundColor: "background.paper",
                             boxShadow: "2px 0 5px -2px rgba(0,0,0,0.1)",
+                            borderBottom: "1px solid rgba(224, 224, 224, 1)",
                           }}
                         >
                           <Checkbox
@@ -319,6 +334,10 @@ export function TableComponent<T extends Record<string, any>>({
                             align={column.align || "left"}
                             onClick={() => onRowClick?.(row)}
                             sx={{
+                              px: { xs: 0.5, sm: 1, md: 2 },
+                              py: { xs: 0.75, sm: 1 },
+                              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              borderBottom: "1px solid rgba(224, 224, 224, 1)",
                               ...(column.sticky && {
                                 position: "sticky",
                                 [column.sticky]: column.stickyOffset || 0,
@@ -334,7 +353,12 @@ export function TableComponent<T extends Record<string, any>>({
                           </TableCell>
                         ))}
                       {renderActions && (
-                        <TableCell align="right">
+                        <TableCell 
+                          align="right"
+                          sx={{
+                            borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                          }}
+                        >
                           {renderActions(row)}
                         </TableCell>
                       )}

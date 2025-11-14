@@ -56,8 +56,8 @@ export function OverviewAnalyticsView() {
         Dashbord
       </Typography>
 
-      <Grid container spacing={3}>
-        <Grid xs={12} sm={6} md={3} sx={{ height: "100%" }}>
+      <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+        <Grid xs={12} sm={6} md={3}>
           <AnalyticsWidgetSummary
             title="Jami Xodimlar Soni"
             total={dashboard?.employees || 0}
@@ -67,7 +67,7 @@ export function OverviewAnalyticsView() {
             }
           />
         </Grid>
-        <Grid xs={12} sm={6} md={3} sx={{ height: "100%" }}>
+        <Grid xs={12} sm={6} md={3}>
           <AnalyticsWidgetSummary
             title="Jami mijozlar soni"
             total={dashboard?.customers || 0}
@@ -75,7 +75,7 @@ export function OverviewAnalyticsView() {
             icon={<img alt="icon" src="/assets/icons/glass/ic-glass-buy.svg" />}
           />
         </Grid>
-        <Grid xs={12} sm={6} md={3} sx={{ height: "100%" }}>
+        <Grid xs={12} sm={6} md={3}>
           <AnalyticsWidgetSummary
             title="Jami shartnomalar soni"
             total={dashboard?.contracts || 0}
@@ -83,7 +83,7 @@ export function OverviewAnalyticsView() {
           />
         </Grid>
 
-        <Grid xs={12} sm={6} md={3} sx={{ height: "100%" }}>
+        <Grid xs={12} sm={6} md={3}>
           <AnalyticsWidgetSummary
             title="Yopilmagan to'lovlar"
             total={dashboard?.debtors || 0}
@@ -94,7 +94,7 @@ export function OverviewAnalyticsView() {
           />
         </Grid>
 
-        <Grid xs={12} sm={6} md={3} sx={{ height: "100%" }}>
+        <Grid xs={12} sm={6} md={3}>
           <AnalyticsWidgetSummary
             title="Balans ($)"
             total={dashboard?.totalBalance.dollar || 0}
@@ -102,7 +102,7 @@ export function OverviewAnalyticsView() {
             icon={<img alt="icon" src="/assets/icons/glass/currency.png" />}
           />
         </Grid>
-        <Grid xs={12} sm={6} md={3} sx={{ height: "100%" }}>
+        <Grid xs={12} sm={6} md={3}>
           {dashboard?.totalBalance.hasCurrencyRate &&
           dashboard?.totalBalance.sum !== null ? (
             <AnalyticsWidgetSummary
@@ -132,7 +132,7 @@ export function OverviewAnalyticsView() {
           )}
         </Grid>
 
-        <Grid xs={12} sm={6} md={3} sx={{ height: "100%" }}>
+        <Grid xs={12} sm={6} md={3}>
           <AnalyticsWidgetSummary
             title="Dollar kurs"
             total={currency}
@@ -142,7 +142,7 @@ export function OverviewAnalyticsView() {
               <img
                 alt="icon"
                 src="/assets/icons/glass/currency.png"
-                style={{ width: 40, height: 40 }}
+                style={{ width: "clamp(32px, 5vw, 40px)", height: "clamp(32px, 5vw, 40px)" }}
               />
             }
           />
@@ -151,7 +151,6 @@ export function OverviewAnalyticsView() {
           xs={12}
           sm={6}
           md={3}
-          sx={{ height: "100%" }}
           display="flex"
           alignItems="center"
         >
@@ -164,14 +163,14 @@ export function OverviewAnalyticsView() {
               <img
                 alt="icon"
                 src="/assets/icons/glass/currency.png"
-                style={{ width: 40, height: 40 }}
+                style={{ width: "clamp(32px, 5vw, 40px)", height: "clamp(32px, 5vw, 40px)" }}
               />
             }
             node
           />
         </Grid>
 
-        <Grid xs={12} md={4}>
+        <Grid xs={12} md={12} lg={4}>
           <AnalyticsCurrentVisits
             title={`Jami Summa ${formatNumber(dashboard?.financial.totalContractPrice || 0)}$`}
             chart={{
@@ -192,7 +191,7 @@ export function OverviewAnalyticsView() {
             }}
           />
         </Grid>
-        <Grid xs={12} md={8}>
+        <Grid xs={12} md={12} lg={8}>
           {!isLoadingStatistic ? (
             <AnalyticsWebsiteVisits />
           ) : (

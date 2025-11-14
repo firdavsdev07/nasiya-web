@@ -163,7 +163,7 @@ export function DebtorView() {
         setManager(value);
       }}
       value={manager}
-      sx={{ minWidth: 200, width: "100%" }}
+      sx={{ minWidth: { xs: 150, sm: 180, md: 200 }, width: "100%", maxWidth: 400 }}
     />
   );
 
@@ -318,7 +318,8 @@ const CustomDateInput = forwardRef<
     color="inherit"
     startIcon={<IoCalendarOutline />}
     sx={{
-      width: "70px",
+      minWidth: { xs: 50, sm: 60, md: 70 },
+      px: { xs: 1, sm: 1.5 },
     }}
   />
 ));

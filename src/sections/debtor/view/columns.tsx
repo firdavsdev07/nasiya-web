@@ -62,7 +62,6 @@ export const columnsContract: Column[] = [
     sortable: false,
     sticky: "left",
     stickyOffset: 0,
-    minWidth: 60,
     renderCell: (row) => {
       const day = new Date(row.startDate).getDate();
       return day.toString();
@@ -74,7 +73,6 @@ export const columnsContract: Column[] = [
     sortable: true,
     sticky: "left",
     stickyOffset: 60,
-    minWidth: 150,
   },
   { id: "productName", label: "Mahsulot nomi", sortable: true },
   {

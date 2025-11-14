@@ -51,12 +51,12 @@ export function AnalyticsWidgetSummary({
   return (
     <Card
       sx={{
-        minHeight: 180,
+        minHeight: { xs: 140, sm: 160, md: 180 },
         width: "100%",
         ...bgGradient({
           color: `135deg, ${varAlpha(theme.vars.palette[color].lighterChannel, 0.48)}, ${varAlpha(theme.vars.palette[color].lightChannel, 0.48)}`,
         }),
-        p: 3,
+        p: { xs: 2, sm: 2.5, md: 3 },
         boxShadow: "none",
         position: "relative",
         color: `${color}.darker`,
@@ -89,7 +89,7 @@ export function AnalyticsWidgetSummary({
             justifyContent="space-between"
             alignItems="start"
           >
-            <Box sx={{ width: 48, height: 48, mb: 3 }}>{icon}</Box>
+            <Box sx={{ width: { xs: 36, sm: 42, md: 48 }, height: { xs: 36, sm: 42, md: 48 }, mb: { xs: 2, sm: 2.5, md: 3 } }}>{icon}</Box>
             {currency !== undefined && currency >= 0 && (
               <IconButton
                 aria-label="edit"
@@ -118,9 +118,9 @@ export function AnalyticsWidgetSummary({
               justifyContent: "flex-end",
             }}
           >
-            <Box sx={{ flexGrow: 1, minWidth: 112 }}>
-              <Box sx={{ mb: 1, typography: "subtitle2" }}>{title}</Box>
-              <Box sx={{ typography: "h4" }}>{formatNumber(total)}</Box>
+            <Box sx={{ flexGrow: 1, minWidth: { xs: 80, sm: 100, md: 112 } }}>
+              <Box sx={{ mb: 1, typography: "subtitle2", fontSize: { xs: "0.75rem", sm: "0.875rem" } }}>{title}</Box>
+              <Box sx={{ typography: "h4", fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" } }}>{formatNumber(total)}</Box>
             </Box>
 
             {/* <Chart

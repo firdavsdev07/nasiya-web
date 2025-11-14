@@ -24,6 +24,10 @@
 html {
   height: 100%;
   -webkit-overflow-scrolling: touch;
+  /* Zoom uchun optimizatsiya */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 body,
 #root,
@@ -32,6 +36,8 @@ body,
   flex: 1 1 auto;
   min-height: 100%;
   flex-direction: column;
+  /* Zoom o'zgarganda layout buzilmasligi uchun */
+  overflow-x: hidden;
 }
 img {
   max-width: 100%;
@@ -53,4 +59,115 @@ input[type='number']::-webkit-outer-spin-button {
 input[type='number']::-webkit-inner-spin-button {
   margin: 0;
   -webkit-appearance: none;
+}
+
+/* Zoom darajalarida responsive qilish */
+* {
+  box-sizing: border-box;
+}
+
+/* Barcha elementlar uchun max-width cheklash */
+.MuiContainer-root,
+.MuiCard-root,
+.MuiPaper-root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Table'lar uchun responsive */
+.MuiTableContainer-root {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Zoom 125% va undan yuqori */
+@media (min-resolution: 1.25dppx) {
+  body {
+    font-size: 0.95rem;
+  }
+  
+  .MuiButton-root {
+    font-size: 0.8rem !important;
+    padding: 6px 12px !important;
+  }
+  
+  .MuiChip-root {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Zoom 150% va undan yuqori */
+@media (min-resolution: 1.5dppx) {
+  body {
+    font-size: 0.9rem;
+  }
+  
+  .MuiButton-root {
+    font-size: 0.75rem !important;
+    padding: 5px 10px !important;
+  }
+  
+  .MuiChip-root {
+    font-size: 0.65rem !important;
+  }
+  
+  .MuiTableCell-root {
+    padding: 8px 4px !important;
+  }
+}
+
+/* Zoom 90% */
+@media (max-resolution: 0.9dppx) {
+  body {
+    font-size: 1.05rem;
+  }
+}
+
+/* Zoom 80% */
+@media (max-resolution: 0.8dppx) {
+  body {
+    font-size: 1.1rem;
+  }
+}
+
+/* Zoom 60% */
+@media (max-resolution: 0.6dppx) {
+  body {
+    font-size: 1.2rem;
+  }
+}
+
+/* Utility classes for responsive design */
+.responsive-container {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  padding-left: clamp(8px, 2vw, 24px);
+  padding-right: clamp(8px, 2vw, 24px);
+}
+
+.responsive-text {
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.responsive-heading {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+/* Prevent layout shift on zoom */
+img, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better text rendering on all zoom levels */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }

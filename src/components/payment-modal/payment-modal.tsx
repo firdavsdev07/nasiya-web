@@ -1,6 +1,6 @@
 import type { FC } from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import {
   Box,
@@ -39,6 +39,7 @@ const PaymentModal: FC<PaymentModalProps> = ({
   onSuccess,
 }) => {
   const dispatch = useAppDispatch();
+  const dollarInputRef = useRef<HTMLInputElement>(null);
   const [note, setNote] = useState("");
   const [dollarAmount, setDollarAmount] = useState(amount);
   const [sumAmount, setSumAmount] = useState(0);
@@ -46,7 +47,7 @@ const PaymentModal: FC<PaymentModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Currency course olish
+  // Currency course olish va input'larni to'ldirish
   useEffect(() => {
     const fetchCurrencyCourse = async () => {
       try {
@@ -54,18 +55,44 @@ const PaymentModal: FC<PaymentModalProps> = ({
         if (res.data && res.data.course) {
           const course = res.data.course;
           setCurrencyCourse(course);
-          setDollarAmount(amount);
-          setSumAmount(amount * course);
-          setDollarInput(amount.toString());
-          setSumInput((amount * course).toString());
+          
+          // Input'larni to'ldirish
+          const dollarValue = amount;
+          const sumValue = amount * course;
+          
+          setDollarAmount(dollarValue);
+          setSumAmount(sumValue);
+          setDollarInput(dollarValue.toFixed(2));
+          setSumInput(sumValue.toFixed(0));
+          
+          // Input'ga focus qilish va select qilish
+          setTimeout(() => {
+            if (dollarInputRef.current) {
+              dollarInputRef.current.focus();
+              dollarInputRef.current.select();
+            }
+          }, 100);
         }
       } catch (error) {
         console.error("Error fetching currency course:", error);
         // Agar xato bo'lsa, default qiymatdan foydalanish
-        setDollarAmount(amount);
-        setSumAmount(amount * 12500);
-        setDollarInput(amount.toString());
-        setSumInput((amount * 12500).toString());
+        const course = 12500;
+        const dollarValue = amount;
+        const sumValue = amount * course;
+        
+        setCurrencyCourse(course);
+        setDollarAmount(dollarValue);
+        setSumAmount(sumValue);
+        setDollarInput(dollarValue.toFixed(2));
+        setSumInput(sumValue.toFixed(0));
+        
+        // Input'ga focus qilish va select qilish
+        setTimeout(() => {
+          if (dollarInputRef.current) {
+            dollarInputRef.current.focus();
+            dollarInputRef.current.select();
+          }
+        }, 100);
       }
     };
 
@@ -75,8 +102,8 @@ const PaymentModal: FC<PaymentModalProps> = ({
   }, [open, amount]);
 
   // State'lar input qiymatlari uchun (string)
-  const [dollarInput, setDollarInput] = useState("");
-  const [sumInput, setSumInput] = useState("");
+  const [dollarInput, setDollarInput] = useState(amount.toFixed(2));
+  const [sumInput, setSumInput] = useState((amount * currencyCourse).toFixed(0));
 
   // Raqamni formatlash funksiyasi (faqat ko'rsatish uchun)
   const formatNumber = (num: number): string => {
@@ -228,10 +255,10 @@ const PaymentModal: FC<PaymentModalProps> = ({
       );
 
       // Modal'ni yopish va ma'lumotlarni tozalash
-      onClose();
       setNote("");
       setDollarInput("");
       setSumInput("");
+      onClose();
 
       // Backend'da ma'lumotlar yangilanishi uchun biroz kutamiz
       setTimeout(() => {
@@ -302,6 +329,7 @@ const PaymentModal: FC<PaymentModalProps> = ({
             value={dollarInput}
             onChange={(e) => handleDollarChange(e.target.value)}
             placeholder="0.00"
+            inputRef={dollarInputRef}
             InputProps={{
               endAdornment: <InputAdornment position="end">$</InputAdornment>,
             }}

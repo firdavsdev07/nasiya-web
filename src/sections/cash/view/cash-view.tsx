@@ -122,7 +122,7 @@ export function CashView() {
         setManager(value);
       }}
       value={manager}
-      sx={{ minWidth: 200, width: "100%" }}
+      sx={{ minWidth: { xs: 150, sm: 180, md: 200 }, width: "100%", maxWidth: 400 }}
     />
   );
 
